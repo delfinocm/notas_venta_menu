@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Legión de María: Notas de Venta</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000099">
+  <link rel="apple-touch-icon" href="icono.png">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  
+  <style>
+    /* DISEÑO ACCESIBLE DE ALTO CONTRASTE */
+    :root {
+      --bg-color: #f7f9fa;
+      --text-color: #111111;
+      --primary: #000099;
+      --success: #25D366;
+      --danger: #C00000;
+      --border: #666666;
+      --white: #ffffff;
+    }
+
+    body { font-family: Arial, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; font-size: 18px; }
+    .view { display: none; padding: 15px; }
+    .view.active { display: block; }
+
+    .tab-bar { display: flex; background: var(--white); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .tab-btn { flex: 1; padding: 14px 5px; font-size: 16px; font-weight: bold; border: none; background: none; border-bottom: 5px solid transparent; color: #444; }
+    .tab-btn.active { border-bottom-color: var(--primary); color: var(--primary); }
+
+    h2, h3 { margin-top: 0; }
+    label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 8px; font-size: 17px; }
+    
+    input[type="text"], input[type="date"] { width: 100%; padding: 14px; font-size: 17px; border: 2px solid var(--border); border-radius: 8px; box-sizing: border-box; background: var(--white); }
+    input:focus { border-color: var(--primary); outline: none; }
+
+    button { width: 100%; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 15px; color: var(--white); cursor: pointer; }
+    .btn-primary { background: var(--primary); }
+    .btn-success { background: var(--success); color: #000; }
+    .btn-secondary { background: #e0e0e0; color: var(--text-color); }
+    .btn-danger { background: var(--danger); }
+    .btn-edit { background: #444; color: white; margin-top: 30px;}
+    .btn-small { padding: 10px; font-size: 15px; width: auto; margin-top: 5px; }
+
+    #canvas-firma { border: 3px dashed var(--border); background: var(--white); touch-action: none; width: 100%; height: 200px; border-radius: 8px; }
+
+    #nota-contenedor { background: var(--white); padding: 15px; border: 2px solid var(--text-color); border-radius: 8px; margin-top: 15px; }
+
+    /* ENCABEZADO MEJORADO */
+    .header-container { display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #C00000; padding-bottom: 12px; margin-bottom: 15px; gap: 15px; }
+    .logo { height: 100px; width: auto; max-width: 120px; object-fit: contain; flex-shrink: 0; }
+    .header-text-block { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+    .txt-legion { color: #C00000; font-weight: bold; font-size: 22px; margin: 0; }
+    .txt-comitium { color: #000099; font-weight: bold; font-size: 15px; margin: 2px 0; }
+    .txt-nota { color: #C00000; font-weight: bold; font-size: 18px; margin: 2px 0; letter-spacing: 1px; }
+    .txt-folio { color: #000000; font-weight: bold; font-size: 16px; margin: 2px 0; }
+
+    .producto-item { border: 2px solid #cccccc; border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #fafafa; }
+    .fila-concepto { display: flex; gap: 10px; margin-bottom: 10px; }
+    .fila-concepto input { flex: 1; padding: 12px; font-weight: bold; border: 1px solid var(--border); }
+    .btn-borrar { width: auto; margin: 0; padding: 0 15px; background: #ff4d4d; color: white; font-size: 20px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .fila-numeros { display: flex; gap: 10px; align-items: flex-end; justify-content: space-between; }
+    .col-num { flex: 1; }
+    .col-num label, .col-importe label { font-size: 14px; color: #555; display: block; margin-bottom: 4px; text-align: center; font-weight: bold; }
+    .col-num input { padding: 10px; width: 100%; border: 1px solid var(--border); text-align: center; font-size: 16px; }
+    .col-importe { flex: 1; text-align: center; }
+    .td-importe { font-size: 18px; font-weight: bold; color: var(--text-color); padding-bottom: 8px; }
+
+    .total-box { font-size: 24px; font-weight: bold; text-align: right; color: var(--danger); margin: 15px 0; }
+    .firma-box { text-align: center; margin-top: 12px; font-size: 15px; font-weight: bold; border-top: 1px dashed var(--border); padding-top: 8px; }
+    #display-firma { max-width: 130px; max-height: 45px; display: block; margin: 2px auto 0 auto; }
+
+    .cambio-box { background: #fff9c4; border: 3px solid #fbc02d; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; }
+    .cambio-text { font-size: 22px; font-weight: bold; color: var(--danger); }
+
+    .historial-item { background: var(--white); padding: 16px; border: 2px solid var(--border); border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+    .preview-nota-img { width: 100%; max-width: 380px; border: 2px solid #222; border-radius: 6px; margin-top: 12px; }
+    
+    /* MODAL IOS */
+    #modal-ios { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+    #modal-ios img { max-width: 100%; max-height: 60%; border: 3px solid var(--white); border-radius: 6px; margin-bottom: 15px;}
+    #modal-ios p { color: var(--white); font-size: 16px; text-align: center; margin-bottom: 10px;}
+    .botones-modal { display: flex; gap: 10px; width: 100%; max-width: 400px; }
+    
+    /* SOLUCIÓN DEFINITIVA AL PROBLEMA DE IPHONE */
+    .flex-row { 
+      display: flex; 
+      gap: 10px; 
+      width: 100%; 
+      box-sizing: border-box; 
+    }
+    .flex-row > div { 
+      flex: 1 1 50%; /* Fuerza a tomar exactamente la mitad del espacio disponible */
+      min-width: 0; 
+      max-width: 50%; /* Prohíbe terminantemente que se desborde */
+      box-sizing: border-box;
+    }
+    .flex-row input[type="date"] { 
+      width: 100%; 
+      min-width: 0; 
+      max-width: 100%; 
+      box-sizing: border-box; 
+      padding: 12px 5px; /* Reducimos el espacio lateral interno para que quepa la fecha */
+      font-size: 15px; /* Letra un poco más pequeña para evitar el desbordamiento del texto */
+    }
+    
+    .box-reporte { background: #e3f2fd; border: 2px solid #1976d2; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; }
+	/* AJUSTE PARA EL CAMPO DE CONCEPTO */
+    .fila-concepto input.input-desc {
+      font-size: 15px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    
+    /* Al escribir o hacer focus, mostramos todo el texto para que puedan leer lo que editan */
+    .fila-concepto input.input-desc:focus {
+      text-overflow: clip;
+      overflow: visible;
+    }
+  </style>
+</head>
+<body onload="initApp()">
+
+  <div id="setup-view" class="view">
+    <h2>Configuración Inicial</h2>
+    <p style="font-size: 16px; color: #444;">Puedes actualizar estos datos en cualquier momento.</p>
+    <label>1. Nombre de tu grupo (Curia o Praesidium):</label>
+    <input type="text" id="setup-grupo" placeholder="Ej. Curia Fuente de Belleza">
+    <label>2. Tu Nombre Completo (Atendido por):</label>
+    <input type="text" id="setup-nombre" placeholder="Ej. Rosario Méndez">
+    <label>3. Dibuja tu firma aquí (Usa tu dedo):</label>
+    <canvas id="canvas-firma"></canvas>
+    <button class="btn-secondary" type="button" onclick="limpiarCanvas()">Limpiar Firma</button>
+    <button class="btn-primary" onclick="procesarGuardadoPerfil()">Guardar Configuración</button>
+  </div>
+
+  <div id="app-view" class="view">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('venta')">Venta</button>
+      <button class="tab-btn" onclick="switchTab('historial')">Historial</button>
+      <button class="tab-btn" onclick="switchTab('reportes')">Reportes</button>
+    </div>
+    
+    <div id="tab-venta" class="tab-content">
+      <label>Nombre del Comprador:</label>
+      <input type="text" id="venta-comprador" placeholder="Ej. Juan Pérez" oninput="actualizarComprador(event)">
+      <div id="nota-contenedor">
+        <div class="header-container">
+          <img src="Vexillum.jpg" alt="Logo" class="logo" id="nota-logo">
+          <div class="header-text-block">
+            <div class="txt-legion">LEGIÓN DE MARÍA</div>
+            <div class="txt-comitium" id="display-grupo">Comitium Nuestra Señora de Guadalupe</div>
+            <div class="txt-nota">NOTA DE VENTA</div>
+            <div class="txt-folio" id="display-folio">LM-000000-000000</div>
+          </div>
+        </div>
+        <p style="margin: 4px 0; font-size: 16px;"><strong>Fecha y Hora:</strong> <span id="display-fecha"></span></p>
+        <p style="margin: 4px 0; font-size: 16px;"><strong>Cliente:</strong> <span id="display-comprador"></span></p>
+        <div id="lista-productos-contenedor" style="margin-top: 15px;"></div>
+        <button class="btn-secondary" type="button" onclick="agregarFila()">+ Agregar Producto</button>
+        <div class="total-box">Total: $<span id="display-total">0.00</span></div>
+        <div class="firma-box">
+          <span id="display-atendido">Atendido por: </span>
+          <img id="display-firma" src="" alt="Firma">
+        </div>
+      </div>
+      <label>Importe Recibido ($):</label>
+      <input type="text" inputmode="decimal" id="venta-recibido" placeholder="0" oninput="validarCambioNumero(this)">
+      <div id="cambio-container" class="cambio-box" style="display: none;">
+        <div class="cambio-text" id="display-cambio">Entregar cambio: $0.00</div>
+      </div>
+      <button class="btn-success" id="btn-whatsapp" onclick="procesarVenta()">Generar Nota</button>
+      <button class="btn-edit" onclick="editarPerfil()">⚙️ Editar Perfil o Firma</button>
+    </div>
+    
+    <div id="tab-historial" class="tab-content" style="display: none;">
+      
+      <button class="btn-success" style="margin-bottom: 15px;" onclick="exportarExcel()">📊 Exportar Todo a Excel</button>
+      
+      <div style="background: #f0f0f0; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+        <h3 style="font-size: 16px; margin-bottom: 5px;">Eliminar por Fechas:</h3>
+        <div class="flex-row">
+            <div><label style="margin-top:0; font-size:14px;">Desde:</label><input type="date" id="borrar-desde"></div>
+            <div><label style="margin-top:0; font-size:14px;">Hasta:</label><input type="date" id="borrar-hasta"></div>
+        </div>
+        <button class="btn-danger btn-small" onclick="borrarRangoFechas()">🗑️ Borrar Rango</button>
+      </div>
+
+      <label>Ver notas del día:</label>
+      <div class="flex-row">
+        <input type="date" id="filtro-fecha" onchange="renderHistorial()">
+      </div>
+      <button class="btn-secondary btn-small" onclick="document.getElementById('filtro-fecha').value=''; renderHistorial();">Ver Todo</button>
+      
+      <div id="historial-lista" style="margin-top: 15px;"></div>
+    </div>
+
+    <div id="tab-reportes" class="tab-content" style="display: none;">
+        <h2>Reporte de Ventas</h2>
+        <div class="flex-row">
+            <div><label style="margin-top:0; font-size:14px;">Desde:</label><input type="date" id="rep-desde"></div>
+            <div><label style="margin-top:0; font-size:14px;">Hasta:</label><input type="date" id="rep-hasta"></div>
+        </div>
+        <button class="btn-primary" onclick="generarReporte()">Generar Reporte</button>
+
+        <div id="resultado-reporte" style="display:none;">
+            <div class="box-reporte">
+                <h3 style="margin: 0; color:#1976d2;">Total Ingresado</h3>
+                <div style="font-size: 32px; font-weight: bold; margin: 10px 0;">$<span id="rep-total">0.00</span></div>
+                <p style="margin:0; font-size:15px; color:#555;">Notas generadas: <span id="rep-conteo">0</span></p>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div id="modal-ios">
+    <p style="font-weight: bold; font-size: 20px;">¡Comprobante Listo!</p>
+    <img id="modal-img" src="" alt="Comprobante generado">
+    <p>Presiona "Compartir"</p>
+    <div class="botones-modal">
+      <button id="btn-modal-compartir" class="btn-success" style="margin-top: 0;">📤 Compartir</button>
+      <button class="btn-danger" style="margin-top: 0;" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+  <!-- LISTA DE CONCEPTOS SUGERIDOS -->
+  <datalist id="lista-conceptos">
+    <option value="Tesserae">
+    <option value="Manuales">
+    <option value="Vexilla">
+    <option value="Medallas V. Milagrosa">
+    <option value="Medallas S. Corazón">
+    <option value="Cadenas">
+    <option value="Llaveros">
+    <option value="Trípticos Entronización">
+    <option value="Oraciones e Himno">
+    <option value="Certificados S. Corazón">
+    <option value="Imagenes S. Corazón">
+    <option value="Guías Rosario">
+    <option value="Tríptico Historia Promesas S.C.">
+    <option value="Tríptico Novena S.C.">
+    <option value="Tríptico Rosario S.C.">
+    <option value="Tarjetas Extensión LM">
+  </datalist>
+
+  <script>
+    // --- REGISTRO DEL SERVICE WORKER (PWA Offline) ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          console.log('Service Worker registrado correctamente.', reg);
+        }).catch(err => {
+          console.log('Fallo al registrar el Service Worker.', err);
+        });
+      });
+    }
+
+    // --- BASE DE DATOS: INDEXED DB ---
+    const dbHelper = {
+        dbName: 'LegionVentasDB',
+        dbVersion: 1,
+        storeName: 'historial',
+        db: null,
+        init: function() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(this.dbName, this.dbVersion);
+                request.onupgradeneeded = (e) => {
+                    let db = e.target.result;
+                    if (!db.objectStoreNames.contains(this.storeName)) {
+                        db.createObjectStore(this.storeName, { keyPath: 'isoDate' });
+                    }
+                };
+                request.onsuccess = (e) => { this.db = e.target.result; resolve(this.db); };
+                request.onerror = (e) => { reject(e.target.error); };
+            });
+        },
+        getAll: function() {
+            return new Promise((resolve, reject) => {
+                let tx = this.db.transaction(this.storeName, 'readonly');
+                let store = tx.objectStore(this.storeName);
+                let request = store.getAll();
+                request.onsuccess = () => {
+                    // Ordenar del más nuevo al más viejo
+                    let resultados = request.result.sort((a,b) => new Date(b.isoDate) - new Date(a.isoDate));
+                    resolve(resultados);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        },
+        save: function(venta) {
+            return new Promise((resolve, reject) => {
+                let tx = this.db.transaction(this.storeName, 'readwrite');
+                let store = tx.objectStore(this.storeName);
+                let request = store.put(venta);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        },
+        delete: function(isoDate) {
+            return new Promise((resolve, reject) => {
+                let tx = this.db.transaction(this.storeName, 'readwrite');
+                let store = tx.objectStore(this.storeName);
+                let request = store.delete(isoDate);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+    };
+
+    let isDrawing = false; let ctx; let archivoParaCompartir = null; 
+
+    async function initApp() {
+      // Inicializar Base de Datos
+      await dbHelper.init();
+      await migrarLocalStorage(); // Migra datos antiguos si existen
+
+      const grupo = localStorage.getItem('userGrupo') || "Comitium Nuestra Señora de Guadalupe";
+      const nombre = localStorage.getItem('userNombre');
+      const firma = localStorage.getItem('userFirma');
+      
+      if(nombre && firma) {
+        document.getElementById('setup-view').classList.remove('active');
+        document.getElementById('app-view').classList.add('active');
+        document.getElementById('display-grupo').innerText = grupo;
+        document.getElementById('display-atendido').innerText = "Atendido por: " + nombre;
+        document.getElementById('display-firma').src = firma;
+        prepararNuevaVenta();
+      } else {
+        document.getElementById('setup-view').classList.add('active');
+        document.getElementById('app-view').classList.remove('active');
+        document.getElementById('setup-grupo').value = localStorage.getItem('userGrupo') || '';
+        initCanvas();
+      }
+    }
+
+    async function migrarLocalStorage() {
+        let historialAntiguo = localStorage.getItem('historialVentasImg');
+        if(historialAntiguo) {
+            let parsed = JSON.parse(historialAntiguo);
+            for(let venta of parsed) {
+                await dbHelper.save(venta);
+            }
+            localStorage.removeItem('historialVentasImg');
+            console.log("Migración de datos a IndexedDB completada.");
+        }
+    }
+
+    function editarPerfil() {
+      document.getElementById('app-view').classList.remove('active');
+      document.getElementById('setup-view').classList.add('active');
+      document.getElementById('setup-grupo').value = localStorage.getItem('userGrupo') || 'Comitium Nuestra Señora de Guadalupe';
+      document.getElementById('setup-nombre').value = localStorage.getItem('userNombre') || '';
+      if(ctx) { limpiarCanvas(); } else { initCanvas(); }
+    }
+
+    function initCanvas() {
+      const canvas = document.getElementById('canvas-firma'); ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect(); canvas.width = rect.width; canvas.height = rect.height;
+      ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#0000FF'; 
+      const obtenerPosicion = (e) => { const rect = canvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: clientX - rect.left, y: clientY - rect.top }; };
+      const empezarDibujo = (e) => { e.preventDefault(); isDrawing = true; const pos = obtenerPosicion(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
+      const dibujar = (e) => { e.preventDefault(); if (!isDrawing) return; const pos = obtenerPosicion(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
+      const terminarDibujo = (e) => { e.preventDefault(); isDrawing = false; ctx.closePath(); };
+      canvas.addEventListener('mousedown', empezarDibujo); canvas.addEventListener('mousemove', dibujar); window.addEventListener('mouseup', terminarDibujo);
+      canvas.addEventListener('touchstart', empezarDibujo, {passive: false}); canvas.addEventListener('touchmove', dibujar, {passive: false}); canvas.addEventListener('touchend', terminarDibujo, {passive: false});
+    }
+
+    function limpiarCanvas() { if(ctx) ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); }
+
+    function procesarGuardadoPerfil() {
+      const grupo = document.getElementById('setup-grupo').value.trim(); const nombre = document.getElementById('setup-nombre').value.trim();
+      if(!grupo || !nombre) { alert("Completa todos los campos."); return; }
+      const firmaData = document.getElementById('canvas-firma').toDataURL('image/png');
+      localStorage.setItem('userGrupo', grupo); localStorage.setItem('userNombre', nombre); localStorage.setItem('userFirma', firmaData);
+      initApp();
+    }
+
+    function prepararNuevaVenta() {
+      document.getElementById('venta-comprador').value = ''; document.getElementById('display-comprador').innerText = '';
+      document.getElementById('lista-productos-contenedor').innerHTML = ''; document.getElementById('venta-recibido').value = '';
+      document.getElementById('cambio-container').style.display = 'none';
+      generarFolioAutomatico(); agregarFila(); calcularTotal();
+    }
+
+    function generarFolioAutomatico() {
+      const d = new Date(); const pad = n => n.toString().padStart(2, '0');
+      document.getElementById('display-folio').innerText = `LM-${pad(d.getDate())}${pad(d.getMonth() + 1)}${d.getFullYear().toString().slice(-2)}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+      document.getElementById('display-fecha').innerText = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function actualizarComprador(e) { document.getElementById('display-comprador').innerText = e.target.value; }
+
+    function agregarFila() {
+      const contenedor = document.getElementById('lista-productos-contenedor'); const isFirst = contenedor.children.length === 0;
+      const div = document.createElement('div'); div.className = 'producto-item';
+      div.innerHTML = `
+        <div class="fila-concepto">
+          <input type="text" class="input-desc" list="lista-conceptos" placeholder="Concepto (Ej. Medallas)">
+        ${!isFirst ? '<button class="btn-borrar" type="button" onclick="borrarFila(this)">🗑️</button>' : ''}</div>
+        <div class="fila-numeros">
+          <div class="col-num"><label>Cant.</label><input type="text" inputmode="decimal" class="input-cant" placeholder="0" oninput="validarNumero(this)"></div>
+          <div class="col-num"><label>Precio $</label><input type="text" inputmode="decimal" class="input-prec" placeholder="0.00" oninput="validarNumero(this)"></div>
+          <div class="col-importe"><label>Importe</label><div class="td-importe">$0.00</div></div>
+        </div>`;
+      contenedor.appendChild(div);
+    }
+
+    function borrarFila(btn) { btn.closest('.producto-item').remove(); calcularTotal(); }
+
+    function validarNumero(input) {
+      input.value = input.value.replace(/[^0-9.]/g, '');
+      if((input.value.match(/\./g) || []).length > 1) input.value = input.value.substring(0, input.value.lastIndexOf('.'));
+      calcularTotal();
+    }
+    function validarCambioNumero(input) {
+      input.value = input.value.replace(/[^0-9.]/g, '');
+      if((input.value.match(/\./g) || []).length > 1) input.value = input.value.substring(0, input.value.lastIndexOf('.'));
+      calcularCambio();
+    }
+
+    function calcularTotal() {
+      let total = 0;
+      document.querySelectorAll('.producto-item').forEach(fila => {
+        const cant = parseFloat(fila.querySelector('.input-cant').value) || 0; const prec = parseFloat(fila.querySelector('.input-prec').value) || 0;
+        const importe = cant * prec; fila.querySelector('.td-importe').innerText = '$' + importe.toFixed(2); total += importe;
+      });
+      document.getElementById('display-total').innerText = total.toFixed(2); calcularCambio();
+    }
+
+    function calcularCambio() {
+      const total = parseFloat(document.getElementById('display-total').innerText) || 0; const recibido = parseFloat(document.getElementById('venta-recibido').value) || 0;
+      const contenedor = document.getElementById('cambio-container');
+      if (recibido > 0 && recibido >= total) { contenedor.style.display = 'block'; document.getElementById('display-cambio').innerText = `Entregar cambio: $${(recibido - total).toFixed(2)}`; } 
+      else { contenedor.style.display = 'none'; }
+    }
+
+    async function procesarVenta() {
+      const btn = document.getElementById('btn-whatsapp'); const comprador = document.getElementById('venta-comprador').value.trim(); const totalVenta = document.getElementById('display-total').innerText;
+      if(!comprador) { alert("Escriba el nombre del comprador."); return; }
+      if(parseFloat(totalVenta) === 0) { alert("La nota no tiene productos válidos."); return; }
+
+      const productosVendidos = [];
+      document.querySelectorAll('.producto-item').forEach(fila => {
+          const desc = fila.querySelector('.input-desc').value.trim() || 'Sin concepto';
+          const cant = parseFloat(fila.querySelector('.input-cant').value) || 0;
+          const prec = parseFloat(fila.querySelector('.input-prec').value) || 0;
+          if(cant > 0) productosVendidos.push({ concepto: desc, cantidad: cant, precio: prec, subtotal: cant * prec });
+      });
+
+      btn.innerText = "⏳ Generando..."; btn.disabled = true;
+      document.querySelectorAll('.btn-borrar').forEach(b => b.style.display = 'none');
+      const inputs = document.querySelectorAll('#lista-productos-contenedor input'); const placeholders = [];
+      inputs.forEach((inp, i) => { inp.setAttribute('value', inp.value); placeholders[i] = inp.getAttribute('placeholder'); inp.removeAttribute('placeholder'); });
+
+      try {
+        const canvasCaptura = await html2canvas(document.getElementById('nota-contenedor'), { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const imgData = canvasCaptura.toDataURL('image/png');
+        const folioStr = document.getElementById('display-folio').innerText;
+        
+        await guardarEnHistorial(folioStr, document.getElementById('display-fecha').innerText, comprador, totalVenta, imgData, productosVendidos);
+        
+        canvasCaptura.toBlob((blob) => {
+            archivoParaCompartir = new File([blob], `Nota_${folioStr}.png`, { type: 'image/png' });
+            document.getElementById('modal-img').src = imgData; document.getElementById('modal-ios').style.display = 'flex';
+            document.getElementById('btn-modal-compartir').style.display = (navigator.share && navigator.canShare && navigator.canShare({ files: [archivoParaCompartir] })) ? 'block' : 'none';
+            prepararNuevaVenta();
+        }, 'image/png');
+      } catch(err) { alert("Error al crear la imagen."); console.log(err); } 
+      finally {
+        inputs.forEach((inp, i) => { if(placeholders[i]) inp.setAttribute('placeholder', placeholders[i]); });
+        document.querySelectorAll('.btn-borrar').forEach(b => b.style.display = 'flex'); btn.innerText = "Generar Nota"; btn.disabled = false;
+      }
+    }
+
+    document.getElementById('btn-modal-compartir').addEventListener('click', async () => {
+        if (archivoParaCompartir && navigator.share) { try { await navigator.share({ files: [archivoParaCompartir], title: 'Nota de Venta' }); } catch (e) { } }
+    });
+    function cerrarModal() { document.getElementById('modal-ios').style.display = 'none'; }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabId).style.display = 'block';
+      if(tabId==='venta') document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+      if(tabId==='historial') { document.querySelector('.tab-btn:nth-child(2)').classList.add('active'); renderHistorial(); }
+      if(tabId==='reportes') document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+    }
+
+    async function guardarEnHistorial(folio, fecha, comprador, total, imgData, productos) {
+      let nuevaVenta = {
+          folio, fecha, comprador, total, imgData, 
+          isoDate: new Date().toISOString(), 
+          productos: productos
+      };
+      await dbHelper.save(nuevaVenta);
+    }
+
+    async function renderHistorial() {
+      const filtro = document.getElementById('filtro-fecha').value; 
+      let historial = await dbHelper.getAll();
+      const lista = document.getElementById('historial-lista'); lista.innerHTML = '';
+      
+      historial.forEach((venta) => {
+        const d = new Date(venta.isoDate); const pad = n => n.toString().padStart(2, '0');
+        const ymd = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        if (filtro && ymd !== filtro) return;
+        
+        // Usamos isoDate como ID único (reemplazando comillas o caracteres raros para el ID HTML)
+        const safeId = venta.isoDate.replace(/[^a-zA-Z0-9]/g, '');
+
+        lista.innerHTML += `
+          <div class="historial-item">
+            <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+              <strong style="color:var(--danger); font-size:18px;">${venta.folio}</strong>
+              <span style="color:#555; font-size:15px;">${venta.fecha}</span>
+            </div>
+            <div style="font-size: 17px;"><strong>Cliente:</strong> ${venta.comprador}</div>
+            <div style="font-size: 20px; font-weight:bold; color:var(--primary); margin: 6px 0;">Total: $${venta.total}</div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-secondary btn-small" style="flex:2;" onclick="toggleImagenNota('${safeId}')">👁️ Ver Nota</button>
+                <button class="btn-danger btn-small" style="flex:1;" onclick="borrarNotaIndividual('${venta.isoDate}')">🗑️</button>
+            </div>
+            <div id="container-img-${safeId}" style="display:none; text-align:center; margin-top:10px;">
+               <img src="${venta.imgData}" class="preview-nota-img" alt="Nota">
+            </div>
+          </div>`;
+      });
+      if(lista.innerHTML === '') lista.innerHTML = '<p style="text-align:center; color:#555;">Ninguna venta localizada.</p>';
+    }
+
+    function toggleImagenNota(safeId) {
+      const container = document.getElementById(`container-img-${safeId}`);
+      container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function borrarNotaIndividual(isoDate) {
+        if(confirm("¿Estás seguro de eliminar esta nota? Esta acción no se puede deshacer.")) {
+            await dbHelper.delete(isoDate);
+            renderHistorial();
+        }
+    }
+
+    async function borrarRangoFechas() {
+        const dDesde = document.getElementById('borrar-desde').value;
+        const dHasta = document.getElementById('borrar-hasta').value;
+        if(!dDesde || !dHasta) { alert("Selecciona ambas fechas."); return; }
+
+        if(confirm("🚨 ADVERTENCIA: Se borrarán todas las notas en este rango. ¿Exportaste a Excel primero?")) {
+            let historial = await dbHelper.getAll();
+            
+            for(let venta of historial) {
+                const d = new Date(venta.isoDate); const pad = n => n.toString().padStart(2, '0');
+                const ymd = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+                
+                // Si la fecha está en el rango, la borramos
+                if(ymd >= dDesde && ymd <= dHasta) {
+                    await dbHelper.delete(venta.isoDate);
+                }
+            }
+            alert("Notas eliminadas.");
+            renderHistorial();
+        }
+    }
+
+    async function generarReporte() {
+        const dDesde = document.getElementById('rep-desde').value;
+        const dHasta = document.getElementById('rep-hasta').value;
+        let historial = await dbHelper.getAll();
+        
+        let totalDinero = 0;
+        let conteoNotas = 0;
+
+        historial.forEach(venta => {
+            const d = new Date(venta.isoDate); const pad = n => n.toString().padStart(2, '0');
+            const ymd = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+            
+            if ((!dDesde || ymd >= dDesde) && (!dHasta || ymd <= dHasta)) {
+                totalDinero += parseFloat(venta.total);
+                conteoNotas++;
+            }
+        });
+
+        document.getElementById('rep-total').innerText = totalDinero.toFixed(2);
+        document.getElementById('rep-conteo').innerText = conteoNotas;
+        document.getElementById('resultado-reporte').style.display = 'block';
+    }
+
+    async function exportarExcel() {
+        let historial = await dbHelper.getAll();
+        if(historial.length === 0) { alert("No hay datos para exportar."); return; }
+
+        let csvContent = "\uFEFFFolio,Fecha,Cliente,Concepto,Cantidad,Precio_Unitario,Subtotal_Concepto,Total_Nota\n";
+
+        historial.forEach(venta => {
+            const folio = venta.folio;
+            const fecha = venta.fecha.replace(/,/g, ' '); 
+            const cliente = venta.comprador.replace(/,/g, ''); 
+            const totalNota = venta.total;
+
+            if(venta.productos && venta.productos.length > 0) {
+                venta.productos.forEach(prod => {
+                    let concepto = prod.concepto.replace(/,/g, '');
+                    csvContent += `${folio},${fecha},${cliente},${concepto},${prod.cantidad},${prod.precio},${prod.subtotal},${totalNota}\n`;
+                });
+            } else {
+                csvContent += `${folio},${fecha},${cliente},Venta General,1,${totalNota},${totalNota},${totalNota}\n`;
+            }
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "Reporte_Ventas.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
