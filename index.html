@@ -91,9 +91,9 @@
       box-sizing: border-box; 
     }
     .flex-row > div { 
-      flex: 1 1 50%; /* Fuerza a tomar exactamente la mitad del espacio disponible */
+      flex: 1 1 50%; 
       min-width: 0; 
-      max-width: 50%; /* Prohíbe terminantemente que se desborde */
+      max-width: 50%; 
       box-sizing: border-box;
     }
     .flex-row input[type="date"] { 
@@ -101,23 +101,17 @@
       min-width: 0; 
       max-width: 100%; 
       box-sizing: border-box; 
-      padding: 12px 5px; /* Reducimos el espacio lateral interno para que quepa la fecha */
-      font-size: 15px; /* Letra un poco más pequeña para evitar el desbordamiento del texto */
+      padding: 12px 5px; 
+      font-size: 16px; /* Ajustado a 16px para evitar zoom en iOS */
     }
     
     .box-reporte { background: #e3f2fd; border: 2px solid #1976d2; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; }
+
 	/* AJUSTE PARA EL CAMPO DE CONCEPTO */
     .fila-concepto input.input-desc {
-      font-size: 15px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-    
-    /* Al escribir o hacer focus, mostramos todo el texto para que puedan leer lo que editan */
-    .fila-concepto input.input-desc:focus {
-      text-overflow: clip;
-      overflow: visible;
+      font-size: 16px; /* 16px evita el zoom automático en iPhone */
+      line-height: normal; /* Permite que letras con trazo bajo como g, j, p se vean completas */
+      vertical-align: middle; /* Centrado vertical correcto */
     }
   </style>
 </head>
@@ -145,7 +139,7 @@
     
     <div id="tab-venta" class="tab-content">
       <label>Nombre del Comprador:</label>
-      <input type="text" id="venta-comprador" placeholder="Ej. Juan Pérez" oninput="actualizarComprador(event)">
+      <input type="text" id="venta-comprador" list="lista-compradores" placeholder="Ej. Curia Fuente de Belleza" oninput="actualizarComprador(event)">
       <div id="nota-contenedor">
         <div class="header-container">
           <img src="Vexillum.jpg" alt="Logo" class="logo" id="nota-logo">
@@ -224,7 +218,22 @@
       <button class="btn-danger" style="margin-top: 0;" onclick="cerrarModal()">Cerrar</button>
     </div>
   </div>
-  <!-- LISTA DE CONCEPTOS SUGERIDOS (Orden Alfabético) -->
+
+  <datalist id="lista-compradores">
+    <option value="Curia Fuente de Belleza">
+    <option value="Curia María Esposa del Espíritu Santo">
+    <option value="Curia María Refugio de Pecadores">
+    <option value="Curia María Reina de la Sagrada Familia">
+    <option value="Curia Nuestra Señora de Fátima">
+    <option value="Curia Perpetuo Socorro">
+    <option value="Curia Reina de los Profetas">
+    <option value="Curia Reina del Cielo">
+    <option value="Curia Sagrario Vivo de Jesús">
+    <option value="Curia Santa María de Guadalupe">
+    <option value="Curia Siervos de María">
+    <option value="Curia Virgen Poderosa">
+  </datalist>
+
   <datalist id="lista-conceptos">
     <option value="Cadenas">
     <option value="Certificados S. Corazón">
