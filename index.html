@@ -91,9 +91,9 @@
       box-sizing: border-box; 
     }
     .flex-row > div { 
-      flex: 1 1 50%; 
+      flex: 1 1 50%; /* Fuerza a tomar exactamente la mitad del espacio disponible */
       min-width: 0; 
-      max-width: 50%; 
+      max-width: 50%; /* Prohíbe terminantemente que se desborde */
       box-sizing: border-box;
     }
     .flex-row input[type="date"] { 
@@ -101,18 +101,11 @@
       min-width: 0; 
       max-width: 100%; 
       box-sizing: border-box; 
-      padding: 12px 5px; 
-      font-size: 16px; /* Ajustado a 16px para evitar zoom en iOS */
+      padding: 12px 5px; /* Reducimos el espacio lateral interno para que quepa la fecha */
+      font-size: 15px; /* Letra un poco más pequeña para evitar el desbordamiento del texto */
     }
     
     .box-reporte { background: #e3f2fd; border: 2px solid #1976d2; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; }
-
-	/* AJUSTE PARA EL CAMPO DE CONCEPTO */
-    .fila-concepto input.input-desc {
-      font-size: 16px; /* 16px evita el zoom automático en iPhone */
-      line-height: normal; /* Permite que letras con trazo bajo como g, j, p se vean completas */
-      vertical-align: middle; /* Centrado vertical correcto */
-    }
   </style>
 </head>
 <body onload="initApp()">
@@ -139,7 +132,7 @@
     
     <div id="tab-venta" class="tab-content">
       <label>Nombre del Comprador:</label>
-      <input type="text" id="venta-comprador" list="lista-compradores" placeholder="Ej. Curia Fuente de Belleza" oninput="actualizarComprador(event)">
+      <input type="text" id="venta-comprador" placeholder="Ej. Juan Pérez" oninput="actualizarComprador(event)">
       <div id="nota-contenedor">
         <div class="header-container">
           <img src="Vexillum.jpg" alt="Logo" class="logo" id="nota-logo">
@@ -218,40 +211,6 @@
       <button class="btn-danger" style="margin-top: 0;" onclick="cerrarModal()">Cerrar</button>
     </div>
   </div>
-
-  <datalist id="lista-compradores">
-    <option value="Curia Fuente de Belleza">
-    <option value="Curia María Esposa del Espíritu Santo">
-    <option value="Curia María Refugio de Pecadores">
-    <option value="Curia María Reina de la Sagrada Familia">
-    <option value="Curia Nuestra Señora de Fátima">
-    <option value="Curia Perpetuo Socorro">
-    <option value="Curia Reina de los Profetas">
-    <option value="Curia Reina del Cielo">
-    <option value="Curia Sagrario Vivo de Jesús">
-    <option value="Curia Santa María de Guadalupe">
-    <option value="Curia Siervos de María">
-    <option value="Curia Virgen Poderosa">
-  </datalist>
-
-  <datalist id="lista-conceptos">
-    <option value="Cadenas">
-    <option value="Certificados S. Corazón">
-    <option value="Guías Rosario">
-    <option value="Imagenes S. Corazón">
-    <option value="Llaveros">
-    <option value="Manuales">
-    <option value="Medallas S. Corazón">
-    <option value="Medallas V. Milagrosa">
-    <option value="Oraciones e Himno">
-    <option value="Tarjetas Extensión LM">
-    <option value="Tesserae">
-    <option value="Tríptico Historia Promesas S.C.">
-    <option value="Tríptico Novena S.C.">
-    <option value="Tríptico Rosario S.C.">
-    <option value="Trípticos Entronización">
-    <option value="Vexilla">
-  </datalist>
 
   <script>
     // --- REGISTRO DEL SERVICE WORKER (PWA Offline) ---
@@ -404,8 +363,7 @@
       const contenedor = document.getElementById('lista-productos-contenedor'); const isFirst = contenedor.children.length === 0;
       const div = document.createElement('div'); div.className = 'producto-item';
       div.innerHTML = `
-        <div class="fila-concepto">
-          <input type="text" class="input-desc" list="lista-conceptos" placeholder="Concepto (Ej. Medallas)">
+        <div class="fila-concepto"><input type="text" class="input-desc" placeholder="Concepto (Ej. Medallas)">
         ${!isFirst ? '<button class="btn-borrar" type="button" onclick="borrarFila(this)">🗑️</button>' : ''}</div>
         <div class="fila-numeros">
           <div class="col-num"><label>Cant.</label><input type="text" inputmode="decimal" class="input-cant" placeholder="0" oninput="validarNumero(this)"></div>
